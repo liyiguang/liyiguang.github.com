@@ -3,17 +3,23 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Yiguang&#39;s blog</title>
+  <title>Finagle Server 源代码分析(Base on finagle 6.13.0) | Yiguang&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Yiguang's blog">
-<meta property="og:url" content="http://yiguang.me/">
+  <meta name="description" content="Finagle是twitter的一个开源RPC框架，框架已经对众多协议提供支持。 Finagle网络通讯的底层使用的是Netty NIO Framework，弄清其工作原理对于扩展Finagle来实现新的协议非常重要。
+如何创建一个RPC Server？
+12345678910object Server extends App {  val server: Server = ServerBuild">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Finagle Server 源代码分析(Base on finagle 6.13.0)">
+<meta property="og:url" content="http://yiguang.me/2014/11/14/Deep-into-Finagle-Server/">
 <meta property="og:site_name" content="Yiguang's blog">
-<meta property="og:description">
+<meta property="og:description" content="Finagle是twitter的一个开源RPC框架，框架已经对众多协议提供支持。 Finagle网络通讯的底层使用的是Netty NIO Framework，弄清其工作原理对于扩展Finagle来实现新的协议非常重要。
+如何创建一个RPC Server？
+12345678910object Server extends App {  val server: Server = ServerBuild">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Yiguang's blog">
-<meta name="twitter:description">
+<meta name="twitter:title" content="Finagle Server 源代码分析(Base on finagle 6.13.0)">
+<meta name="twitter:description" content="Finagle是twitter的一个开源RPC框架，框架已经对众多协议提供支持。 Finagle网络通讯的底层使用的是Netty NIO Framework，弄清其工作原理对于扩展Finagle来实现新的协议非常重要。
+如何创建一个RPC Server？
+12345678910object Server extends App {  val server: Server = ServerBuild">
 
   
     <link rel="alternative" href="/atom.xml" title="Yiguang&#39;s blog" type="application/atom+xml">
@@ -73,9 +79,7 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main">
-  
-    <article id="post-Deep-into-Finagle-Server" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-Deep-into-Finagle-Server" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2014/11/14/Deep-into-Finagle-Server/" class="article-date">
   <time datetime="2014-11-14T06:40:28.000Z" itemprop="datePublished">11月 14 2014</time>
@@ -92,8 +96,8 @@
       <header class="article-header">
         
   
-    <h1 itemprop="name">
-      <a class="article-title" href="/2014/11/14/Deep-into-Finagle-Server/">Finagle Server 源代码分析(Base on finagle 6.13.0)</a>
+    <h1 class="article-title" itemprop="name">
+      Finagle Server 源代码分析(Base on finagle 6.13.0)
     </h1>
   
 
@@ -146,52 +150,20 @@
     </footer>
   </div>
   
-</article>
-
-
+    
+<nav id="article-nav">
   
-    <article id="post-hello-world" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2014/11/06/hello-world/" class="article-date">
-  <time datetime="2014-11-06T06:06:22.000Z" itemprop="datePublished">11月 6 2014</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
   
-    <h1 itemprop="name">
-      <a class="article-title" href="/2014/11/06/hello-world/">Hello World</a>
-    </h1>
+    <a href="/2014/11/06/hello-world/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Hello World</div>
+    </a>
   
+</nav>
 
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Welcome to <a href="http://yiguang.me" target="_blank" rel="external">Yiguang’s blog</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      
-        <a data-url="http://yiguang.me/2014/11/06/hello-world/" data-id="jht9okiwe5sj5eka" class="article-share-link" data-share="baidu">分享到</a>
-      
-
-      
-
-      
-    </footer>
-  </div>
   
 </article>
 
-
-  
-  
 </section>
         
           <aside id="sidebar">

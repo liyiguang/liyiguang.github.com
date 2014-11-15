@@ -75,6 +75,81 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-Deep-into-Finagle-Server" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2014/11/14/Deep-into-Finagle-Server/" class="article-date">
+  <time datetime="2014-11-14T06:40:28.000Z" itemprop="datePublished">11月 14 2014</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/technical/">technical</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2014/11/14/Deep-into-Finagle-Server/">Finagle Server 源代码分析(Base on finagle 6.13.0)</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="http://twitter.github.io/finagle" target="_blank" rel="external">Finagle</a>是twitter的一个开源RPC框架，框架已经对众多协议提供支持。 Finagle网络通讯的底层使用的是Netty NIO Framework，弄清其工作原理对于扩展Finagle来实现新的协议非常重要。</p>
+<h2 id="如何创建一个RPC_Server？">如何创建一个RPC Server？</h2>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">Server</span> <span class="keyword">extends</span> <span class="title">App</span> </span>{</div><div class="line">  <span class="keyword">val</span> server: Server = ServerBuilder()</div><div class="line">    .codec(<span class="keyword">new</span> MyCodec())</div><div class="line">    .bindTo(<span class="keyword">new</span> InetSocketAddress(<span class="string">"127.0.0.1:8080"</span>)</div><div class="line">    .name(<span class="string">"XXXServer"</span>)</div><div class="line">    .build(<span class="keyword">new</span> MyService())</div><div class="line">}</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyCodec</span> <span class="keyword">extends</span> <span class="title">CodecFactory</span>[<span class="title">YourReq</span>,<span class="title">YourRep</span>]</span></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyService</span> <span class="title">class</span> <span class="title">Service</span>[<span class="title">YourReq</span>,<span class="title">YourRep</span>]</span></div></pre></td></tr></table></figure>
+
+<p>class MyCodec　提供了协议的编解码实现,即从网络数据流中解析出请求消息想(YourReq)和序列化响应消息(YourRep)并发送给客户端<br>class MyService 提供业务处理逻辑 例如：处理Ｍemcached协议中的一条Get消息<br>Finagle通过对Netty的封装对外提供了简单一致的用户使用接口和扩展接口，这一切是如何做到你的呢？</p>
+<h2 id="Finagle如何将协议编解码逻辑挂入Netty_PipleLine中?">Finagle如何将协议编解码逻辑挂入Netty PipleLine中?</h2>
+<p>分析ServerBuild类的build方法的可以发现Codec pipelienFactory最终传入到了Netty3Listener中，<br>并且在调用Netty3Listener实例的listen方法时通过实例化Netty的ServerBootstrap时传入pipelineFactory，过程如下</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> listener = Netty3Listener[Any, Any](</div><div class="line">  pipelineFactory = codec.pipelineFactory</div><div class="line">...</div><div class="line">)</div><div class="line"><span class="keyword">val</span> server = DefaultServer[Req, Rep, Any, Any](</div><div class="line">  listener = listener,</div><div class="line">  ...</div><div class="line">)</div><div class="line"><span class="keyword">val</span> listeningServer = server.serve(config.bindTo, factory)</div><div class="line"><span class="comment">//serve方法会调用listener.listen方法，最终在Netty3Listener的listen中方法中和Netty建立关联</span></div><div class="line"><span class="keyword">def</span> listen(...) = {</div><div class="line"><span class="keyword">val</span> bootstrap = <span class="keyword">new</span> ServerBootstrap(channelFactory)</div><div class="line">  bootstrap.setOptions(bootstrapOptions.asJava)</div><div class="line">  bootstrap.setPipelineFactory(</div><div class="line">  ...</div><div class="line">  )</div><div class="line">  <span class="keyword">val</span> ch = bootstrap.bind(addr)</div><div class="line">}</div></pre></td></tr></table></figure>
+
+<h2 id="Finagle如何将Req派发给Service,如何将Rep消息发送出去？">Finagle如何将Req派发给Service,如何将Rep消息发送出去？</h2>
+<p>Finagle通过GenSerialServerDispatcher的扩展实例将消息转化为Service接口的service方法调用</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="keyword">def</span> dispatch(req: Req) = service(req)</div><div class="line"><span class="keyword">protected</span> <span class="keyword">def</span> handle(rep: Rep) = trans.write(rep)</div></pre></td></tr></table></figure>
+
+<h2 id="ServerDispatcher如何获得消息Req消息？">ServerDispatcher如何获得消息Req消息？</h2>
+<p>GenSerialServerDispatcher中有持有Transport(ChannelTransport)的实例引用,通过read方法获取消息</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span>[<span class="keyword">this</span>] <span class="keyword">def</span> loop(): Future[Unit] = {</div><div class="line">    state.set(Idle)</div><div class="line">    trans.read() flatMap { req =&gt;</div><div class="line">      <span class="keyword">val</span> p = <span class="keyword">new</span> Promise[Rep]</div><div class="line">      <span class="keyword">if</span> (state.compareAndSet(Idle, p)) {</div><div class="line">        p.become(dispatch(req))</div><div class="line">        p</div><div class="line">      } <span class="keyword">else</span> Eof</div><div class="line">    } flatMap { rep =&gt;</div><div class="line">      handle(rep)</div><div class="line">    } respond {</div><div class="line">      <span class="keyword">case</span> Return(()) <span class="keyword">if</span> state.get ne Closed =&gt;</div><div class="line">        loop()</div><div class="line"></div><div class="line">      <span class="keyword">case</span> _ =&gt;</div><div class="line">        trans.close()</div><div class="line">    }</div><div class="line">}</div></pre></td></tr></table></figure>
+
+<p>　</p>
+<h2 id="ChannelTransport如何能够获得消息?">ChannelTransport如何能够获得消息?</h2>
+<p>ChannelTransport为Netty的ChannelUpstreamHandler子类并在自身的初始化过程中挂入到Netty　pipleline中</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">ChannelTransport</span>[<span class="title">In</span>, <span class="title">Out</span>]<span class="params">(ch: Channel)</span></span></div><div class="line">  <span class="keyword">extends</span> Transport[In, Out] <span class="keyword">with</span> ChannelUpstreamHandler{</div><div class="line">...</div><div class="line">ch.getPipeline.addLast(<span class="string">"finagleTransportBridge"</span>, <span class="keyword">this</span>)</div><div class="line">}</div></pre></td></tr></table></figure>
+
+<h2 id="Netty的Channel如何转换为Finagel的ChannelTransport?">Netty的Channel如何转换为Finagel的ChannelTransport?</h2>
+<p>在SimpleChannelHandler的channelOpen中实例化的ChannelTransport</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span>[netty3] <span class="class"><span class="keyword">class</span> <span class="title">ServerBridge</span>[<span class="title">In</span>, <span class="title">Out</span>]<span class="params">(</span></span></div><div class="line">  serveTransport: Transport[In, Out] =&gt; Unit,</div><div class="line">  monitor: Monitor,</div><div class="line">  log: Logger,</div><div class="line">  statsReceiver: StatsReceiver,</div><div class="line">  channels: ChannelGroup</div><div class="line">) <span class="keyword">extends</span> <span class="title">SimpleChannelHandler</span> {</div><div class="line"></div><div class="line"><span class="keyword">override</span> <span class="keyword">def</span> channelOpen(ctx: ChannelHandlerContext, e: ChannelStateEvent) {</div><div class="line">  <span class="keyword">val</span> channel = e.getChannel</div><div class="line">  channels.add(channel)</div><div class="line">  <span class="keyword">val</span> transport = <span class="keyword">new</span> ChannelTransport(channel).cast[In, Out]</div><div class="line">  ...   </div><div class="line">}</div></pre></td></tr></table></figure>
+
+<p>ServerBridge 的实例作为ChannelHandler在Server初始化过程中通过Netty3Listener加入到pipleLine当中</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">def</span> newServerPipelineFactory(statsReceiver: StatsReceiver, newBridge: () =&gt; ChannelHandler) = {</div><div class="line">  <span class="keyword">new</span> ChannelPipelineFactory {</div><div class="line">  <span class="keyword">def</span> getPipeline() = {</div><div class="line">    ...    </div><div class="line">    pipeline.addLast(<span class="string">"finagleBridge"</span>, newBridge())</div><div class="line">    pipeline</div><div class="line">  }</div><div class="line"> }</div><div class="line">}</div></pre></td></tr></table></figure>
+
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yiguang.me/2014/11/14/Deep-into-Finagle-Server/" data-id="cq0y8hqa4nuqolug" class="article-share-link" data-share="baidu">分享到</a>
+      
+
+      
+
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/finagle/">finagle</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/netty/">netty</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/scala/">scala</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-hello-world" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2014/11/06/hello-world/" class="article-date">
@@ -103,7 +178,7 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yiguang.me/2014/11/06/hello-world/" data-id="raurfglww1r1ce0j" class="article-share-link" data-share="baidu">分享到</a>
+        <a data-url="http://yiguang.me/2014/11/06/hello-world/" data-id="jht9okiwe5sj5eka" class="article-share-link" data-share="baidu">分享到</a>
       
 
       
@@ -122,16 +197,37 @@
           <aside id="sidebar">
   
     
+  <div class="widget-wrap">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/technical/">technical</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
   
     
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/finagle/">finagle</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/netty/">netty</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/scala/">scala</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
   
     
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/finagle/" style="font-size: NaNpx;">finagle</a><a href="/tags/netty/" style="font-size: NaNpx;">netty</a><a href="/tags/scala/" style="font-size: NaNpx;">scala</a>
+    </div>
+  </div>
+
   
     
   <div class="widget-wrap">
     <h3 class="widget-title">归档</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">2</span></li></ul>
     </div>
   </div>
 
@@ -141,6 +237,10 @@
     <h3 class="widget-title">近期文章</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2014/11/14/Deep-into-Finagle-Server/">Finagle Server 源代码分析(Base on finagle 6.13.0)</a>
+          </li>
         
           <li>
             <a href="/2014/11/06/hello-world/">Hello World</a>
