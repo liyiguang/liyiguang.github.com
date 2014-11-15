@@ -3,23 +3,23 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Finagle Server 源代码分析(Base on finagle 6.13.0) | Yiguang&#39;s blog</title>
+  <title>Finagle Server 源代码分析 | Yiguang&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Finagle是twitter的一个开源RPC框架，框架已经对众多协议提供支持。 Finagle网络通讯的底层使用的是Netty NIO Framework，弄清其工作原理对于扩展Finagle来实现新的协议非常重要。
+  <meta name="description" content="Finagle是twitter的一个开源RPC框架，框架已经对众多协议提供支持。 Finagle网络通讯的底层使用的是Netty NIO Framework，分析清楚Finagle是如何对Netty进行封装的对于想扩展Finagle以支持新的协议非常重要。(以下分析基于Finagle 6.13.0)
 如何创建一个RPC Server？
-12345678910object Server extends App {  val server: Server = ServerBuild">
+12345678910object Server extend">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Finagle Server 源代码分析(Base on finagle 6.13.0)">
+<meta property="og:title" content="Finagle Server 源代码分析">
 <meta property="og:url" content="http://yiguang.me/2014/11/14/Deep-into-Finagle-Server/">
 <meta property="og:site_name" content="Yiguang's blog">
-<meta property="og:description" content="Finagle是twitter的一个开源RPC框架，框架已经对众多协议提供支持。 Finagle网络通讯的底层使用的是Netty NIO Framework，弄清其工作原理对于扩展Finagle来实现新的协议非常重要。
+<meta property="og:description" content="Finagle是twitter的一个开源RPC框架，框架已经对众多协议提供支持。 Finagle网络通讯的底层使用的是Netty NIO Framework，分析清楚Finagle是如何对Netty进行封装的对于想扩展Finagle以支持新的协议非常重要。(以下分析基于Finagle 6.13.0)
 如何创建一个RPC Server？
-12345678910object Server extends App {  val server: Server = ServerBuild">
+12345678910object Server extend">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Finagle Server 源代码分析(Base on finagle 6.13.0)">
-<meta name="twitter:description" content="Finagle是twitter的一个开源RPC框架，框架已经对众多协议提供支持。 Finagle网络通讯的底层使用的是Netty NIO Framework，弄清其工作原理对于扩展Finagle来实现新的协议非常重要。
+<meta name="twitter:title" content="Finagle Server 源代码分析">
+<meta name="twitter:description" content="Finagle是twitter的一个开源RPC框架，框架已经对众多协议提供支持。 Finagle网络通讯的底层使用的是Netty NIO Framework，分析清楚Finagle是如何对Netty进行封装的对于想扩展Finagle以支持新的协议非常重要。(以下分析基于Finagle 6.13.0)
 如何创建一个RPC Server？
-12345678910object Server extends App {  val server: Server = ServerBuild">
+12345678910object Server extend">
 
   
     <link rel="alternative" href="/atom.xml" title="Yiguang&#39;s blog" type="application/atom+xml">
@@ -97,7 +97,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      Finagle Server 源代码分析(Base on finagle 6.13.0)
+      Finagle Server 源代码分析
     </h1>
   
 
@@ -105,7 +105,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p><a href="http://twitter.github.io/finagle" target="_blank" rel="external">Finagle</a>是twitter的一个开源RPC框架，框架已经对众多协议提供支持。 Finagle网络通讯的底层使用的是Netty NIO Framework，弄清其工作原理对于扩展Finagle来实现新的协议非常重要。</p>
+        <p><a href="http://twitter.github.io/finagle" target="_blank" rel="external">Finagle</a>是twitter的一个开源RPC框架，框架已经对众多协议提供支持。 Finagle网络通讯的底层使用的是Netty NIO Framework，分析清楚Finagle是如何对Netty进行封装的对于想扩展Finagle以支持新的协议非常重要。(以下分析基于Finagle 6.13.0)</p>
 <h2 id="如何创建一个RPC_Server？">如何创建一个RPC Server？</h2>
 <figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">Server</span> <span class="keyword">extends</span> <span class="title">App</span> </span>{</div><div class="line">  <span class="keyword">val</span> server: Server = ServerBuilder()</div><div class="line">    .codec(<span class="keyword">new</span> MyCodec())</div><div class="line">    .bindTo(<span class="keyword">new</span> InetSocketAddress(<span class="string">"127.0.0.1:8080"</span>)</div><div class="line">    .name(<span class="string">"XXXServer"</span>)</div><div class="line">    .build(<span class="keyword">new</span> MyService())</div><div class="line">}</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyCodec</span> <span class="keyword">extends</span> <span class="title">CodecFactory</span>[<span class="title">YourReq</span>,<span class="title">YourRep</span>]</span></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyService</span> <span class="title">class</span> <span class="title">Service</span>[<span class="title">YourReq</span>,<span class="title">YourRep</span>]</span></div></pre></td></tr></table></figure>
 
@@ -211,7 +211,7 @@
       <ul>
         
           <li>
-            <a href="/2014/11/14/Deep-into-Finagle-Server/">Finagle Server 源代码分析(Base on finagle 6.13.0)</a>
+            <a href="/2014/11/14/Deep-into-Finagle-Server/">Finagle Server 源代码分析</a>
           </li>
         
           <li>
