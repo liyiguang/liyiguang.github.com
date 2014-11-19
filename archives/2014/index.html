@@ -103,13 +103,14 @@
       
         <p>在实现一个MQTT消息代理时需要持久化存储一些数据,用Redis设计一个简单的存储方案</p>
 <hr>
-<h2 id="消息的存储－存放发布的消息实体">消息的存储－存放发布的消息实体</h2>
+<h2 id="消息的存储">消息的存储</h2>
+<p>存放发布的消息实体</p>
 <ol>
 <li>redis string存储消息</li>
 <li>key 为消息id</li>
-<li>接口</li>
 </ol>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">saveMessage(m:PUBLISH)</div><div class="line">loadMessage(id:Long):PUBLISH</div><div class="line">deleteMessage(id:Long)</div></pre></td></tr></table></figure>
+<p>接口:</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">def</span> saveMessage(m:PUBLISH)</div><div class="line"><span class="keyword">def</span> loadMessage(id:Long):PUBLISH</div><div class="line"><span class="keyword">def</span> deleteMessage(id:Long)</div></pre></td></tr></table></figure>
 
 <p>qosLevel=0的消息不需要持久保存,为了节约空间可以在push成功以后删掉消息实体</p>
 <hr>
@@ -126,7 +127,8 @@
 <li>key为topicName</li>
 <li>hash key=clientId value=qosLevel</li>
 </ol>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">saveSubscribes(clientId:String,Map[String,Byte])</div><div class="line">deleteSubscribes(clientId:String,Map[String,Byte])</div><div class="line">loadSubscribes(clientId:String):Map[String,Byte]</div><div class="line">loadSubscribers(topicName:String):Map[String,Byte]</div></pre></td></tr></table></figure>
+<p>接口:</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">def</span> saveSubscribes(clientId:String,Map[String,Byte])</div><div class="line"><span class="keyword">def</span> deleteSubscribes(clientId:String,Map[String,Byte])</div><div class="line"><span class="keyword">def</span> loadSubscribes(clientId:String):Map[String,Byte]</div><div class="line"><span class="keyword">def</span> loadSubscribers(topicName:String):Map[String,Byte]</div></pre></td></tr></table></figure>
 
 <hr>
 <h2 id="In_Flight_Message_Box">In Flight Message Box</h2>
@@ -140,7 +142,8 @@
 <li>redis set存储用户的Flight message id</li>
 <li>key为clientId</li>
 </ol>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">saveFlightMessage(clientId:String,messageId:String)</div><div class="line">loadFlightMessages(clientId:String):List[String]</div><div class="line">deleteFlightMessageBox(clientId:String)</div></pre></td></tr></table></figure>
+<p>接口:</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">def</span> saveFlightMessage(clientId:String,messageId:String)</div><div class="line"><span class="keyword">def</span> loadFlightMessages(clientId:String):List[String]</div><div class="line"><span class="keyword">def</span> deleteFlightMessageBox(clientId:String)</div></pre></td></tr></table></figure>
 
 <hr>
 <h2 id="Retain_Message">Retain Message</h2>
@@ -150,7 +153,8 @@
 <li>key 固定key</li>
 <li>hash key=topicName value=messageId</li>
 </ol>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">updateRetainMessage(topic:String,messageId:String)</div><div class="line">loadRetainMessage(topic:String)</div></pre></td></tr></table></figure>
+<p>接口:</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">def</span> updateRetainMessage(topic:String,messageId:String)</div><div class="line"><span class="keyword">def</span> loadRetainMessage(topic:String)</div></pre></td></tr></table></figure>
 
 
       
