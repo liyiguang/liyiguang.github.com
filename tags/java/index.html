@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Hello World | Yiguang&#39;s blog</title>
+  <title>Tag: java | Yiguang&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Welcome to Yiguang’s blog">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Hello World">
-<meta property="og:url" content="http://yiguang.me/2014/11/06/hello-world/">
+  <meta name="description">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Yiguang's blog">
+<meta property="og:url" content="http://yiguang.me/tags/java/">
 <meta property="og:site_name" content="Yiguang's blog">
-<meta property="og:description" content="Welcome to Yiguang’s blog">
+<meta property="og:description">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hello World">
-<meta name="twitter:description" content="Welcome to Yiguang’s blog">
+<meta name="twitter:title" content="Yiguang's blog">
+<meta name="twitter:description">
 
   
     <link rel="alternative" href="/atom.xml" title="Yiguang&#39;s blog" type="application/atom+xml">
@@ -73,12 +73,18 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main"><article id="post-hello-world" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main">
+  
+    <article id="post-String编解码" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2014/11/06/hello-world/" class="article-date">
-  <time datetime="2014-11-06T06:06:22.000Z" itemprop="datePublished">11月 6 2014</time>
+    <a href="/2014/11/24/String编解码/" class="article-date">
+  <time datetime="2014-11-24T02:36:00.000Z" itemprop="datePublished">11月 24 2014</time>
 </a>
     
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/technical/">technical</a>
+  </div>
+
   </div>
   <div class="article-inner">
     
@@ -86,8 +92,8 @@
       <header class="article-header">
         
   
-    <h1 class="article-title" itemprop="name">
-      Hello World
+    <h1 itemprop="name">
+      <a class="article-title" href="/2014/11/24/String编解码/">String编解码问题</a>
     </h1>
   
 
@@ -95,39 +101,41 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Welcome to <a href="http://yiguang.me" target="_blank" rel="external">Yiguang’s blog</a></p>
+        <h2 id="问题来由">问题来由</h2>
+<p>在一个项目中使用redis的PubSub功能。客户端使用Redis的java客户端Jedis。<br>代码如下:</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> jedis = <span class="keyword">new</span> Jedis(<span class="string">"localhost"</span>,<span class="number">6379</span>)</div><div class="line"></div><div class="line"><span class="comment">//由于JedisPubSub onMessage 只提供了String接口，而我要Push的消息是一个类的序列化结果</span></div><div class="line"><span class="comment">//也就是一个Byte数组Array[Byte]，查看JedisPub的代码发现其接收到byte[]数据后通过</span></div><div class="line"><span class="comment">//new String(a,"UTF-8")转为字符串，于是想用如下处理方式将字符串转为byte[]，再反序列化成对象</span></div><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">Scriber</span> <span class="keyword">extends</span> <span class="title">JedisPubSub</span> </span>{</div><div class="line">    ...</div><div class="line">    <span class="keyword">override</span> <span class="keyword">def</span> onMessage(channel: String, message: String): Unit = {</div><div class="line">       <span class="keyword">val</span> bytes:Array[Byte] = message.getBytes(<span class="string">"UTF-8"</span>)</div><div class="line">       ...</div><div class="line">       <span class="comment">//再用得到的byte数组反序列化成对象</span></div><div class="line">    }</div><div class="line">}</div><div class="line">jedis.subscribe(Scriber,<span class="string">"RedisKey"</span>)</div><div class="line"></div><div class="line"><span class="comment">//发布消息如下</span></div><div class="line"><span class="keyword">val</span> message:Array[Byte] = <span class="keyword">new</span> XXXClass().toBytes</div><div class="line">jedis.publish(<span class="string">"RedisKey"</span>.getBytes(<span class="string">"UTF-8"</span>)，message)</div></pre></td></tr></table></figure>
+
+<p>于是问题出现了，反序列化总是异常。比较发送的byte数组和通过接收到字符串消息转换而来的byte数组，发现两者的内容和长度都不一样。</p>
+<h2 id="问题根本原因">问题根本原因</h2>
+<p>问题原因就在字符串编码解码上，UTF-8为变长编码,-128 to -1的byte转换成的字符串在3个byte的空间域中<br>简化代码如下：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> bytes1 = <span class="string">"test字符串"</span>.getBytes(<span class="string">"UTF-8"</span>)</div><div class="line"><span class="keyword">val</span> str1 = <span class="keyword">new</span> String(bytes1,<span class="string">"UTF-8"</span>)</div><div class="line">println(<span class="string">"test字符串"</span> == str1) <span class="comment">//true</span></div><div class="line"><span class="keyword">val</span> bytes2 = str1.getBytes(<span class="string">"UTF-8"</span>)</div><div class="line"><span class="keyword">val</span> ret1 = bytes1.zip(bytes2).forall(x =&gt; x._1 == x._2)</div><div class="line">println(ret1) <span class="comment">//true</span></div><div class="line"></div><div class="line"><span class="keyword">val</span> bytes3 = Array(-<span class="number">100.</span>toByte)</div><div class="line"><span class="keyword">val</span> str3 =<span class="keyword">new</span> String(bytes3,<span class="string">"UTF-8"</span>)</div><div class="line"><span class="keyword">val</span> bytes4 = str3.getBytes(<span class="string">"UTF-8"</span>)</div><div class="line">println(bytes3.length == bytes4.length) <span class="comment">//false</span></div><div class="line"><span class="keyword">val</span> ret2 = bytes3.zip(bytes4).forall(x =&gt; x._1 == x._2)</div><div class="line">println(ret2) <span class="comment">//false</span></div><div class="line">println(bytes4.zipAll(bytes3,<span class="number">0</span>,<span class="number">0</span>).foreach(print _))</div></pre></td></tr></table></figure>
+
+<h2 id="总结">总结</h2>
+<ol>
+<li>字符串UTF-8的编解码并不是可逆的</li>
+<li>Jedis的JedisPubSub接口存在缺陷，onMessage接口按现在的参数只能支持String类型的消息</li>
+</ol>
 
       
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yiguang.me/2014/11/06/hello-world/" data-id="jht9okiwe5sj5eka" class="article-share-link" data-share="baidu">分享到</a>
+        <a data-url="http://yiguang.me/2014/11/24/String编解码/" data-id="upkhkzg435wz8ssf" class="article-share-link" data-share="baidu">分享到</a>
       
 
       
 
       
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li></ul>
+
     </footer>
   </div>
   
-    
-<nav id="article-nav">
-  
-    <a href="/2014/11/14/Deep-into-Finagle-Server/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          Finagle Server 源代码分析
-        
-      </div>
-    </a>
-  
-  
-</nav>
-
-  
 </article>
 
+
+  
+  
 </section>
         
           <aside id="sidebar">

@@ -3,50 +3,23 @@
 <head>
   <meta charset="utf-8">
   
-  <title>MQTT Message broker 存储设计 | Yiguang&#39;s blog</title>
+  <title>String编解码问题 | Yiguang&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="在实现一个MQTT消息代理时需要持久化存储一些数据,用Redis设计一个简单的存储方案
-
-消息的存储
-存放发布的消息实体
-
-redis string存储消息
-key 为消息id
-
-接口:
-123def saveMessage(m:PUBLISH)def loadMessage(id:Long):PUBLISHdef deleteMessage(id:Long)
-
-qosLevel=0的消息不需要持">
+  <meta name="description" content="问题来由
+在一个项目中使用redis的PubSub功能。客户端使用Redis的java客户端Jedis。代码如下:
+123456789101112131415161718val jedis = new Jedis('localhost',6379)//由于JedisPubSub onMessage 只提供了String接口，而我要Push的消息是一个类的序列化结果//也就是一个Byte数组Arra">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MQTT Message broker 存储设计">
-<meta property="og:url" content="http://yiguang.me/2014/11/19/MQTT-Message-broker-Storage-Design/">
+<meta property="og:title" content="String编解码问题">
+<meta property="og:url" content="http://yiguang.me/2014/11/24/String编解码/">
 <meta property="og:site_name" content="Yiguang's blog">
-<meta property="og:description" content="在实现一个MQTT消息代理时需要持久化存储一些数据,用Redis设计一个简单的存储方案
-
-消息的存储
-存放发布的消息实体
-
-redis string存储消息
-key 为消息id
-
-接口:
-123def saveMessage(m:PUBLISH)def loadMessage(id:Long):PUBLISHdef deleteMessage(id:Long)
-
-qosLevel=0的消息不需要持">
+<meta property="og:description" content="问题来由
+在一个项目中使用redis的PubSub功能。客户端使用Redis的java客户端Jedis。代码如下:
+123456789101112131415161718val jedis = new Jedis('localhost',6379)//由于JedisPubSub onMessage 只提供了String接口，而我要Push的消息是一个类的序列化结果//也就是一个Byte数组Arra">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="MQTT Message broker 存储设计">
-<meta name="twitter:description" content="在实现一个MQTT消息代理时需要持久化存储一些数据,用Redis设计一个简单的存储方案
-
-消息的存储
-存放发布的消息实体
-
-redis string存储消息
-key 为消息id
-
-接口:
-123def saveMessage(m:PUBLISH)def loadMessage(id:Long):PUBLISHdef deleteMessage(id:Long)
-
-qosLevel=0的消息不需要持">
+<meta name="twitter:title" content="String编解码问题">
+<meta name="twitter:description" content="问题来由
+在一个项目中使用redis的PubSub功能。客户端使用Redis的java客户端Jedis。代码如下:
+123456789101112131415161718val jedis = new Jedis('localhost',6379)//由于JedisPubSub onMessage 只提供了String接口，而我要Push的消息是一个类的序列化结果//也就是一个Byte数组Arra">
 
   
     <link rel="alternative" href="/atom.xml" title="Yiguang&#39;s blog" type="application/atom+xml">
@@ -106,10 +79,10 @@ qosLevel=0的消息不需要持">
   </div>
 </header>
       <div class="outer">
-        <section id="main"><article id="post-MQTT-Message-broker-Storage-Design" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-String编解码" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2014/11/19/MQTT-Message-broker-Storage-Design/" class="article-date">
-  <time datetime="2014-11-19T09:00:42.000Z" itemprop="datePublished">11月 19 2014</time>
+    <a href="/2014/11/24/String编解码/" class="article-date">
+  <time datetime="2014-11-24T02:36:00.000Z" itemprop="datePublished">11月 24 2014</time>
 </a>
     
   <div class="article-category">
@@ -124,7 +97,7 @@ qosLevel=0的消息不需要持">
         
   
     <h1 class="article-title" itemprop="name">
-      MQTT Message broker 存储设计
+      String编解码问题
     </h1>
   
 
@@ -132,73 +105,32 @@ qosLevel=0的消息不需要持">
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>在实现一个MQTT消息代理时需要持久化存储一些数据,用Redis设计一个简单的存储方案</p>
-<hr>
-<h2 id="消息的存储">消息的存储</h2>
-<p>存放发布的消息实体</p>
-<ol>
-<li>redis string存储消息</li>
-<li>key 为消息id</li>
-</ol>
-<p>接口:</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">def</span> saveMessage(m:PUBLISH)</div><div class="line"><span class="keyword">def</span> loadMessage(id:Long):PUBLISH</div><div class="line"><span class="keyword">def</span> deleteMessage(id:Long)</div></pre></td></tr></table></figure>
+        <h2 id="问题来由">问题来由</h2>
+<p>在一个项目中使用redis的PubSub功能。客户端使用Redis的java客户端Jedis。<br>代码如下:</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> jedis = <span class="keyword">new</span> Jedis(<span class="string">"localhost"</span>,<span class="number">6379</span>)</div><div class="line"></div><div class="line"><span class="comment">//由于JedisPubSub onMessage 只提供了String接口，而我要Push的消息是一个类的序列化结果</span></div><div class="line"><span class="comment">//也就是一个Byte数组Array[Byte]，查看JedisPub的代码发现其接收到byte[]数据后通过</span></div><div class="line"><span class="comment">//new String(a,"UTF-8")转为字符串，于是想用如下处理方式将字符串转为byte[]，再反序列化成对象</span></div><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">Scriber</span> <span class="keyword">extends</span> <span class="title">JedisPubSub</span> </span>{</div><div class="line">    ...</div><div class="line">    <span class="keyword">override</span> <span class="keyword">def</span> onMessage(channel: String, message: String): Unit = {</div><div class="line">       <span class="keyword">val</span> bytes:Array[Byte] = message.getBytes(<span class="string">"UTF-8"</span>)</div><div class="line">       ...</div><div class="line">       <span class="comment">//再用得到的byte数组反序列化成对象</span></div><div class="line">    }</div><div class="line">}</div><div class="line">jedis.subscribe(Scriber,<span class="string">"RedisKey"</span>)</div><div class="line"></div><div class="line"><span class="comment">//发布消息如下</span></div><div class="line"><span class="keyword">val</span> message:Array[Byte] = <span class="keyword">new</span> XXXClass().toBytes</div><div class="line">jedis.publish(<span class="string">"RedisKey"</span>.getBytes(<span class="string">"UTF-8"</span>)，message)</div></pre></td></tr></table></figure>
 
-<p>qosLevel=0的消息不需要持久保存,为了节约空间可以在push成功以后删掉消息实体</p>
-<hr>
-<h2 id="订阅关系的存储">订阅关系的存储</h2>
-<p>用户订阅的topic</p>
-<ol>
-<li>redis hash存储用户订阅的topic</li>
-<li>key为clientId</li>
-<li>hash key=topic value=qosLevel</li>
-</ol>
-<p>topic下的订阅用户</p>
-<ol>
-<li>redis hash存放topic的订阅用户</li>
-<li>key为topicName</li>
-<li>hash key=clientId value=qosLevel</li>
-</ol>
-<p>接口:</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">def</span> saveSubscribes(clientId:String,Map[String,Byte])</div><div class="line"><span class="keyword">def</span> deleteSubscribes(clientId:String,Map[String,Byte])</div><div class="line"><span class="keyword">def</span> loadSubscribes(clientId:String):Map[String,Byte]</div><div class="line"><span class="keyword">def</span> loadSubscribers(topicName:String):Map[String,Byte]</div></pre></td></tr></table></figure>
+<p>于是问题出现了，反序列化总是异常。比较发送的byte数组和通过接收到字符串消息转换而来的byte数组，发现两者的内容和长度都不一样。</p>
+<h2 id="问题根本原因">问题根本原因</h2>
+<p>问题原因就在字符串编码解码上，UTF-8为变长编码,-128 to -1的byte转换成的字符串在3个byte的空间域中<br>简化代码如下：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> bytes1 = <span class="string">"test字符串"</span>.getBytes(<span class="string">"UTF-8"</span>)</div><div class="line"><span class="keyword">val</span> str1 = <span class="keyword">new</span> String(bytes1,<span class="string">"UTF-8"</span>)</div><div class="line">println(<span class="string">"test字符串"</span> == str1) <span class="comment">//true</span></div><div class="line"><span class="keyword">val</span> bytes2 = str1.getBytes(<span class="string">"UTF-8"</span>)</div><div class="line"><span class="keyword">val</span> ret1 = bytes1.zip(bytes2).forall(x =&gt; x._1 == x._2)</div><div class="line">println(ret1) <span class="comment">//true</span></div><div class="line"></div><div class="line"><span class="keyword">val</span> bytes3 = Array(-<span class="number">100.</span>toByte)</div><div class="line"><span class="keyword">val</span> str3 =<span class="keyword">new</span> String(bytes3,<span class="string">"UTF-8"</span>)</div><div class="line"><span class="keyword">val</span> bytes4 = str3.getBytes(<span class="string">"UTF-8"</span>)</div><div class="line">println(bytes3.length == bytes4.length) <span class="comment">//false</span></div><div class="line"><span class="keyword">val</span> ret2 = bytes3.zip(bytes4).forall(x =&gt; x._1 == x._2)</div><div class="line">println(ret2) <span class="comment">//false</span></div><div class="line">println(bytes4.zipAll(bytes3,<span class="number">0</span>,<span class="number">0</span>).foreach(print _))</div></pre></td></tr></table></figure>
 
-<hr>
-<h2 id="In_Flight_Message_Box">In Flight Message Box</h2>
-<p>Flight message 包括:</p>
+<h2 id="总结">总结</h2>
 <ol>
-<li>发送失败的消息</li>
-<li>qosLeve=1 qosLeve=2的离线订阅消息</li>
+<li>字符串UTF-8的编解码并不是可逆的</li>
+<li>Jedis的JedisPubSub接口存在缺陷，onMessage接口按现在的参数只能支持String类型的消息</li>
 </ol>
-<p>存储:</p>
-<ol>
-<li>redis set存储用户的Flight message id</li>
-<li>key为clientId</li>
-</ol>
-<p>接口:</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">def</span> saveFlightMessage(clientId:String,messageId:String)</div><div class="line"><span class="keyword">def</span> loadFlightMessages(clientId:String):List[String]</div><div class="line"><span class="keyword">def</span> deleteFlightMessageBox(clientId:String)</div></pre></td></tr></table></figure>
-
-<hr>
-<h2 id="Retain_Message">Retain Message</h2>
-<p>保存每一个topic的最新一条Retain Message id</p>
-<ol>
-<li>redis hash</li>
-<li>key 固定key</li>
-<li>hash key=topicName value=messageId</li>
-</ol>
-<p>接口:</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">def</span> updateRetainMessage(topic:String,messageId:String)</div><div class="line"><span class="keyword">def</span> loadRetainMessage(topic:String)</div></pre></td></tr></table></figure>
-
 
       
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yiguang.me/2014/11/19/MQTT-Message-broker-Storage-Design/" data-id="qm19z75nl0w5yo2r" class="article-share-link" data-share="baidu">分享到</a>
+        <a data-url="http://yiguang.me/2014/11/24/String编解码/" data-id="upkhkzg435wz8ssf" class="article-share-link" data-share="baidu">分享到</a>
       
 
       
 
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MQTT/">MQTT</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/redis/">redis</a></li></ul>
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li></ul>
 
     </footer>
   </div>
@@ -206,19 +138,10 @@ qosLevel=0的消息不需要持">
     
 <nav id="article-nav">
   
-    <a href="/2014/11/24/String编解码/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          String编解码问题
-        
-      </div>
-    </a>
   
-  
-    <a href="/2014/11/14/Deep-into-Finagle-Server/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2014/11/19/MQTT-Message-broker-Storage-Design/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">Finagle Server 源代码分析</div>
+      <div class="article-nav-title">MQTT Message broker 存储设计</div>
     </a>
   
 </nav>
