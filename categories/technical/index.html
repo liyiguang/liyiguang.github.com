@@ -75,6 +75,66 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-scala-twitter-future" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2014/11/28/scala-twitter-future/" class="article-date">
+  <time datetime="2014-11-28T05:08:29.000Z" itemprop="datePublished">11月 28 2014</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/technical/">technical</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2014/11/28/scala-twitter-future/">Twitter的scala工具类中的Future</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="话题">话题</h2>
+<p>在使用twitter的RPC Framework <a href="http://twitter.github.io/finagle" target="_blank" rel="external">Finagle</a>时，会经常用到一trait:Future.(其实他并不在Finagle这个project里) 这个trait是整个框架异步性的核心。<br>其实在akka中也有Future类，概念上来说是差不多的，基本用法也都差不多。twitter提供的这个Future简单用法如下</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//create a constant </span></div><div class="line"><span class="keyword">val</span> f = Futrue.value(<span class="number">7</span>)</div><div class="line">f.respond {</div><div class="line">  <span class="keyword">case</span> Return(v) =&gt; println(v)</div><div class="line">  <span class="keyword">case</span> Throw(e)  =&gt; log(<span class="string">"error"</span>,e)</div><div class="line">}</div><div class="line"></div><div class="line"><span class="comment">//create by Promise</span></div><div class="line"><span class="keyword">val</span> f = Promise[String]()</div><div class="line">f.setValue(<span class="string">"result"</span>) <span class="comment">// set when compute successfully</span></div><div class="line">p.setException(e)    <span class="comment">// set when exception</span></div></pre></td></tr></table></figure>
+
+<h2 id="问题">问题</h2>
+<p>在工作中，我们用到的一些Java API 或scala API 都只提供了同步调用的接口，如访问数据库或是HttpService的接口。举个例子我们有一个访问Redis的接口定义如下：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">RedisStorage</span> </span>{</div><div class="line">  <span class="keyword">private</span> <span class="keyword">val</span> jedis = <span class="keyword">new</span> Jedis()</div><div class="line">  <span class="keyword">def</span> loadObject(key: String) = {</div><div class="line">    jedis.get(key)</div><div class="line">  }</div><div class="line">}</div></pre></td></tr></table></figure>
+
+<p>怎样通过一个比较优雅的方式把这些调用转换成异步的Future呢？利用scala可以优雅实现</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">Futures</span> </span>{</div><div class="line">  <span class="keyword">private</span>[<span class="keyword">this</span>] <span class="keyword">val</span> scheduler: Scheduler = <span class="keyword">new</span> ThreadPoolScheduler(<span class="string">"SynToAsyn"</span>)</div><div class="line">  <span class="javadoc">/**</span></div><div class="line">   * because it will be confused, so not imply as implicit method</div><div class="line">   * <span class="javadoctag">@param</span> f</div><div class="line">   * <span class="javadoctag">@tparam</span> R</div><div class="line">   * <span class="javadoctag">@return</span></div><div class="line">   */</div><div class="line">  <span class="keyword">def</span> asyn[R](f: =&gt; R): Future[R] = {</div><div class="line"></div><div class="line">    <span class="keyword">val</span> p = Promise[R]()</div><div class="line">    scheduler.submit(<span class="keyword">new</span> Runnable {</div><div class="line">      <span class="keyword">def</span> run(): Unit = {</div><div class="line">        <span class="keyword">try</span> {</div><div class="line">          <span class="keyword">val</span> r = f</div><div class="line">          p.setValue(r)</div><div class="line">        }</div><div class="line">        <span class="keyword">catch</span> {</div><div class="line">          <span class="keyword">case</span> e =&gt;</div><div class="line">            p.setException(e)</div><div class="line">        }</div><div class="line">      }</div><div class="line">    })</div><div class="line">    p</div><div class="line">  }</div><div class="line">}</div></pre></td></tr></table></figure>
+
+<h2 id="例子">例子</h2>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">Test</span> <span class="keyword">extends</span> <span class="title">App</span> </span>{</div><div class="line">  <span class="keyword">import</span> Futures.asyn</div><div class="line">  <span class="keyword">def</span> costtime_call1 = {</div><div class="line">    Thread.sleep(<span class="number">2000</span>)</div><div class="line">    println(<span class="string">"finishe costtime_call1"</span>)</div><div class="line">  }</div><div class="line"></div><div class="line">  <span class="keyword">def</span> costtime_call2(p:String):String = {</div><div class="line">    Thread.sleep(<span class="number">2000</span>)</div><div class="line">    println(<span class="string">"finishe costtime_call2 with "</span>+ p)</div><div class="line">    <span class="keyword">return</span> <span class="string">"OK"</span></div><div class="line">  }</div><div class="line"></div><div class="line">  <span class="keyword">val</span> f1 = asyn(costtime_call1)</div><div class="line"></div><div class="line">  <span class="keyword">val</span> f2 = asyn{</div><div class="line">    costtime_call2(<span class="string">"hello"</span>)</div><div class="line">  }</div><div class="line"></div><div class="line">  f2.onSuccess(x=&gt;println(<span class="string">"Returned:"</span>+x))</div><div class="line"></div><div class="line">  Await.result(f1)</div><div class="line">  <span class="keyword">val</span> ret = Await.result(f2)</div><div class="line"></div><div class="line">  println(<span class="string">"WaitResult:"</span>+ret)</div><div class="line"></div><div class="line">  Thread.sleep(<span class="number">1000</span>)</div><div class="line">}</div></pre></td></tr></table></figure>
+
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yiguang.me/2014/11/28/scala-twitter-future/" data-id="pb27anaj1bgefh5y" class="article-share-link" data-share="baidu">分享到</a>
+      
+
+      
+
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/scala/">scala</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-String编解码" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2014/11/24/String编解码/" class="article-date">
@@ -320,7 +380,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">分类</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/technical/">technical</a><span class="category-list-count">3</span></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/technical/">technical</a><span class="category-list-count">4</span></li></ul>
     </div>
   </div>
 
@@ -329,7 +389,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/MQTT/">MQTT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/finagle/">finagle</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/netty/">netty</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/redis/">redis</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/scala/">scala</a><span class="tag-list-count">1</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/MQTT/">MQTT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/finagle/">finagle</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/netty/">netty</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/redis/">redis</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/scala/">scala</a><span class="tag-list-count">2</span></li></ul>
     </div>
   </div>
 
@@ -338,7 +398,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签云</h3>
     <div class="widget tagcloud">
-      <a href="/tags/MQTT/" style="font-size: NaNpx;">MQTT</a><a href="/tags/finagle/" style="font-size: NaNpx;">finagle</a><a href="/tags/java/" style="font-size: NaNpx;">java</a><a href="/tags/netty/" style="font-size: NaNpx;">netty</a><a href="/tags/redis/" style="font-size: NaNpx;">redis</a><a href="/tags/scala/" style="font-size: NaNpx;">scala</a>
+      <a href="/tags/MQTT/" style="font-size: 10.00px;">MQTT</a><a href="/tags/finagle/" style="font-size: 10.00px;">finagle</a><a href="/tags/java/" style="font-size: 10.00px;">java</a><a href="/tags/netty/" style="font-size: 10.00px;">netty</a><a href="/tags/redis/" style="font-size: 10.00px;">redis</a><a href="/tags/scala/" style="font-size: 20.00px;">scala</a>
     </div>
   </div>
 
@@ -347,7 +407,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">归档</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
@@ -357,6 +417,10 @@
     <h3 class="widget-title">近期文章</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2014/11/28/scala-twitter-future/">Twitter的scala工具类中的Future</a>
+          </li>
         
           <li>
             <a href="/2014/11/24/String编解码/">String编解码问题</a>
