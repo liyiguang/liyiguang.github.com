@@ -3,23 +3,20 @@
 <head>
   <meta charset="utf-8">
   
-  <title>String编解码问题 | Yiguang&#39;s blog</title>
+  <title>Scala Collection | Yiguang&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="问题来由
-在一个项目中使用redis的PubSub功能。客户端使用Redis的java客户端Jedis。代码如下:
-123456789101112131415161718val jedis = new Jedis('localhost',6379)//由于JedisPubSub onMessage 只提供了String接口，而我要Push的消息是一个类的序列化结果//也就是一个Byte数组Arra">
+  <meta name="description" content="Scala相比于java提供了更为丰富容器,并且每一种容器具有丰富的方法可用,不过再使用过程中需要注意某些方法为容器父类或是混入的trait所提供,并不适合当前容器使用,一旦错用后果非常严重.例子：
+1234567891011121314151617181920val ab = new scala.collection.mutable.ArrayBuffer[Int]()val testSize">
 <meta property="og:type" content="article">
-<meta property="og:title" content="String编解码问题">
-<meta property="og:url" content="http://yiguang.me/2014/11/24/String编解码/">
+<meta property="og:title" content="Scala Collection">
+<meta property="og:url" content="http://yiguang.me/2014/12/22/Scala-Collection/">
 <meta property="og:site_name" content="Yiguang's blog">
-<meta property="og:description" content="问题来由
-在一个项目中使用redis的PubSub功能。客户端使用Redis的java客户端Jedis。代码如下:
-123456789101112131415161718val jedis = new Jedis('localhost',6379)//由于JedisPubSub onMessage 只提供了String接口，而我要Push的消息是一个类的序列化结果//也就是一个Byte数组Arra">
+<meta property="og:description" content="Scala相比于java提供了更为丰富容器,并且每一种容器具有丰富的方法可用,不过再使用过程中需要注意某些方法为容器父类或是混入的trait所提供,并不适合当前容器使用,一旦错用后果非常严重.例子：
+1234567891011121314151617181920val ab = new scala.collection.mutable.ArrayBuffer[Int]()val testSize">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="String编解码问题">
-<meta name="twitter:description" content="问题来由
-在一个项目中使用redis的PubSub功能。客户端使用Redis的java客户端Jedis。代码如下:
-123456789101112131415161718val jedis = new Jedis('localhost',6379)//由于JedisPubSub onMessage 只提供了String接口，而我要Push的消息是一个类的序列化结果//也就是一个Byte数组Arra">
+<meta name="twitter:title" content="Scala Collection">
+<meta name="twitter:description" content="Scala相比于java提供了更为丰富容器,并且每一种容器具有丰富的方法可用,不过再使用过程中需要注意某些方法为容器父类或是混入的trait所提供,并不适合当前容器使用,一旦错用后果非常严重.例子：
+1234567891011121314151617181920val ab = new scala.collection.mutable.ArrayBuffer[Int]()val testSize">
 
   
     <link rel="alternative" href="/atom.xml" title="Yiguang&#39;s blog" type="application/atom+xml">
@@ -79,10 +76,10 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main"><article id="post-String编解码" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-Scala-Collection" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2014/11/24/String编解码/" class="article-date">
-  <time datetime="2014-11-24T02:36:00.000Z" itemprop="datePublished">11月 24 2014</time>
+    <a href="/2014/12/22/Scala-Collection/" class="article-date">
+  <time datetime="2014-12-22T07:37:31.000Z" itemprop="datePublished">12月 22 2014</time>
 </a>
     
   <div class="article-category">
@@ -97,7 +94,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      String编解码问题
+      Scala Collection
     </h1>
   
 
@@ -105,32 +102,21 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="问题来由">问题来由</h2>
-<p>在一个项目中使用redis的PubSub功能。客户端使用Redis的java客户端Jedis。<br>代码如下:</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> jedis = <span class="keyword">new</span> Jedis(<span class="string">"localhost"</span>,<span class="number">6379</span>)</div><div class="line"></div><div class="line"><span class="comment">//由于JedisPubSub onMessage 只提供了String接口，而我要Push的消息是一个类的序列化结果</span></div><div class="line"><span class="comment">//也就是一个Byte数组Array[Byte]，查看JedisPub的代码发现其接收到byte[]数据后通过</span></div><div class="line"><span class="comment">//new String(a,"UTF-8")转为字符串，于是想用如下处理方式将字符串转为byte[]，再反序列化成对象</span></div><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">Scriber</span> <span class="keyword">extends</span> <span class="title">JedisPubSub</span> </span>{</div><div class="line">    ...</div><div class="line">    <span class="keyword">override</span> <span class="keyword">def</span> onMessage(channel: String, message: String): Unit = {</div><div class="line">       <span class="keyword">val</span> bytes:Array[Byte] = message.getBytes(<span class="string">"UTF-8"</span>)</div><div class="line">       ...</div><div class="line">       <span class="comment">//再用得到的byte数组反序列化成对象</span></div><div class="line">    }</div><div class="line">}</div><div class="line">jedis.subscribe(Scriber,<span class="string">"RedisKey"</span>)</div><div class="line"></div><div class="line"><span class="comment">//发布消息如下</span></div><div class="line"><span class="keyword">val</span> message:Array[Byte] = <span class="keyword">new</span> XXXClass().toBytes</div><div class="line">jedis.publish(<span class="string">"RedisKey"</span>.getBytes(<span class="string">"UTF-8"</span>)，message)</div></pre></td></tr></table></figure>
+        <p>Scala相比于java提供了更为丰富容器,并且每一种容器具有丰富的方法可用,不过再使用过程中需要注意某些方法为容器父类或是混入的trait所提供,并不适合当前容器使用,一旦错用后果非常严重.<br>例子：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> ab = <span class="keyword">new</span> scala.collection.mutable.ArrayBuffer[Int]()</div><div class="line"><span class="keyword">val</span> testSize = <span class="number">1000000</span></div><div class="line"></div><div class="line"><span class="keyword">val</span> start = System.currentTimeMillis()</div><div class="line"><span class="keyword">for</span>(i &lt;- <span class="number">0</span> until testSize){</div><div class="line">  ab += i</div><div class="line">}</div><div class="line"><span class="keyword">val</span> end = System.currentTimeMillis()</div><div class="line"></div><div class="line">println(<span class="string">"total:"</span>+(end - start))</div><div class="line"></div><div class="line"><span class="keyword">var</span> ab1 = <span class="keyword">new</span> scala.collection.mutable.ArrayBuffer[Int]()</div><div class="line"></div><div class="line"><span class="keyword">val</span> start1 = System.currentTimeMillis()</div><div class="line"><span class="keyword">for</span>(i &lt;- <span class="number">0</span> until testSize){</div><div class="line">  ab1 = ab1 :+ i</div><div class="line">}</div><div class="line"><span class="keyword">val</span> end1 = System.currentTimeMillis()</div><div class="line"></div><div class="line">println(<span class="string">"total1:"</span>+(end - start))</div></pre></td></tr></table></figure>
 
-<p>于是问题出现了，反序列化总是异常。比较发送的byte数组和通过接收到字符串消息转换而来的byte数组，发现两者的内容和长度都不一样。</p>
-<h2 id="问题根本原因">问题根本原因</h2>
-<p>问题原因就在字符串编码解码上，UTF-8为变长编码,-128 to -1的byte转换成的字符串在3个byte的空间域中<br>简化代码如下：</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> bytes1 = <span class="string">"test字符串"</span>.getBytes(<span class="string">"UTF-8"</span>)</div><div class="line"><span class="keyword">val</span> str1 = <span class="keyword">new</span> String(bytes1,<span class="string">"UTF-8"</span>)</div><div class="line">println(<span class="string">"test字符串"</span> == str1) <span class="comment">//true</span></div><div class="line"><span class="keyword">val</span> bytes2 = str1.getBytes(<span class="string">"UTF-8"</span>)</div><div class="line"><span class="keyword">val</span> ret1 = bytes1.zip(bytes2).forall(x =&gt; x._1 == x._2)</div><div class="line">println(ret1) <span class="comment">//true</span></div><div class="line"></div><div class="line"><span class="keyword">val</span> bytes3 = Array(-<span class="number">100.</span>toByte)</div><div class="line"><span class="keyword">val</span> str3 =<span class="keyword">new</span> String(bytes3,<span class="string">"UTF-8"</span>)</div><div class="line"><span class="keyword">val</span> bytes4 = str3.getBytes(<span class="string">"UTF-8"</span>)</div><div class="line">println(bytes3.length == bytes4.length) <span class="comment">//false</span></div><div class="line"><span class="keyword">val</span> ret2 = bytes3.zip(bytes4).forall(x =&gt; x._1 == x._2)</div><div class="line">println(ret2) <span class="comment">//false</span></div><div class="line">println(bytes4.zipAll(bytes3,<span class="number">0</span>,<span class="number">0</span>).foreach(print _))</div></pre></td></tr></table></figure>
-
-<h2 id="总结">总结</h2>
-<ol>
-<li>字符串UTF-8的编解码并不一定都是可逆的</li>
-<li>Jedis的JedisPubSub接口存在缺陷，onMessage接口按现在的参数只能支持String类型的消息</li>
-</ol>
 
       
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yiguang.me/2014/11/24/String编解码/" data-id="upkhkzg435wz8ssf" class="article-share-link" data-share="baidu">分享到</a>
+        <a data-url="http://yiguang.me/2014/12/22/Scala-Collection/" data-id="ae2r8sn383g3295d" class="article-share-link" data-share="baidu">分享到</a>
       
 
       
 
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li></ul>
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/scala/">scala</a></li></ul>
 
     </footer>
   </div>
@@ -138,19 +124,10 @@
     
 <nav id="article-nav">
   
-    <a href="/2014/11/28/scala-twitter-future/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          Twitter的scala工具类中的Future
-        
-      </div>
-    </a>
   
-  
-    <a href="/2014/11/19/MQTT-Message-broker-Storage-Design/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2014/11/28/scala-twitter-future/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">MQTT Message broker 存储设计</div>
+      <div class="article-nav-title">Twitter的scala工具类中的Future</div>
     </a>
   
 </nav>
