@@ -75,9 +75,9 @@
       <div class="outer">
         <section id="main">
   
-    <article id="post-Scala陷阱１" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Scala-trap1" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2015/01/06/Scala陷阱１/" class="article-date">
+    <a href="/2015/01/06/Scala-trap1/" class="article-date">
   <time datetime="2015-01-06T06:05:52.000Z" itemprop="datePublished">1月 6 2015</time>
 </a>
     
@@ -93,7 +93,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2015/01/06/Scala陷阱１/">Scala陷阱１</a>
+      <a class="article-title" href="/2015/01/06/Scala-trap1/">Scala陷阱１</a>
     </h1>
   
 
@@ -103,16 +103,16 @@
       
         <p>Scala陷阱这个系列会把使用Scala过程中遇到的小问题给记录下来</p>
 <h3 id="implicit">implicit</h3>
-<p>其实这个问题和implicit 本身没有关系,和对象初始化顺序有关系,但implicit使得问题更迷惑.代码如下:</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">Call</span> </span>{                                                                             </div><div class="line">  <span class="keyword">def</span> hello(a:String)(implicit b:String) = {  </div><div class="line">    println(a+b)                              </div><div class="line">  }                                           </div><div class="line">}                                             </div><div class="line">                                              </div><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">Test</span> <span class="keyword">extends</span> <span class="title">App</span></span>{                      </div><div class="line">                                              </div><div class="line">  sayHello                                    </div><div class="line">                                              </div><div class="line">  implicit <span class="keyword">val</span> b = <span class="string">"bbb"</span>                      </div><div class="line">  <span class="keyword">def</span> sayHello = {                            </div><div class="line">    Call.hello(<span class="string">"a"</span>)                           </div><div class="line">  }                                           </div><div class="line">                                              </div><div class="line">}</div></pre></td></tr></table></figure>
+<p>其实这个问题和implicit 本身没有关系,和对象初始化顺序有关系,但implicit使得问题更迷惑.<br>代码如下：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">Call</span> </span>{                                                                             </div><div class="line">  <span class="keyword">def</span> hello(a:String)(implicit b:String) = {  </div><div class="line">    println(a+b)                              </div><div class="line">  }                                           </div><div class="line">}                                             </div><div class="line">                                              </div><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">Test</span> <span class="keyword">extends</span> <span class="title">App</span></span>{                                                                  </div><div class="line">  sayHello                                    </div><div class="line">                                           </div><div class="line">  implicit <span class="keyword">val</span> b = <span class="string">"bbb"</span>                      </div><div class="line">  <span class="keyword">def</span> sayHello = Call.hello(<span class="string">"a"</span>)                           </div><div class="line">                                                                                      </div><div class="line">}</div></pre></td></tr></table></figure>
 
-<p>运行Test会得到abbb的结果吗？答案是NO,得到的结果是anull,原因是调用sayHello val b 还没有被初始化,所以程序编译通过,但传给hello函数的impicit参数为null.</p>
+<p>运行Test会得到abbb的结果吗？答案是NO,得到的结果是anull,原因是调用sayHello时， val b 还没有被初始化,所以程序编译通过,但传给hello函数的impicit参数为null.</p>
 
       
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yiguang.me/2015/01/06/Scala陷阱１/" data-id="su6qu0bcvqv8xj4z" class="article-share-link" data-share="baidu">分享到</a>
+        <a data-url="http://yiguang.me/2015/01/06/Scala-trap1/" data-id="dtp664iswwj6kq4s" class="article-share-link" data-share="baidu">分享到</a>
       
 
       
@@ -161,7 +161,7 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yiguang.me/2014/12/22/Scala-Collection/" data-id="ae2r8sn383g3295d" class="article-share-link" data-share="baidu">分享到</a>
+        <a data-url="http://yiguang.me/2014/12/22/Scala-Collection/" data-id="44qg4ne1if9t5u7x" class="article-share-link" data-share="baidu">分享到</a>
       
 
       
@@ -176,9 +176,9 @@
 
 
   
-    <article id="post-scala-twitter-future" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Scala-twitter-future" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2014/11/28/scala-twitter-future/" class="article-date">
+    <a href="/2014/11/28/Scala-twitter-future/" class="article-date">
   <time datetime="2014-11-28T05:08:29.000Z" itemprop="datePublished">11月 28 2014</time>
 </a>
     
@@ -194,7 +194,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2014/11/28/scala-twitter-future/">Twitter的scala工具类中的Future</a>
+      <a class="article-title" href="/2014/11/28/Scala-twitter-future/">Twitter的scala工具类中的Future</a>
     </h1>
   
 
@@ -221,7 +221,7 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yiguang.me/2014/11/28/scala-twitter-future/" data-id="pb27anaj1bgefh5y" class="article-share-link" data-share="baidu">分享到</a>
+        <a data-url="http://yiguang.me/2014/11/28/Scala-twitter-future/" data-id="3isfs1ezovb1edc0" class="article-share-link" data-share="baidu">分享到</a>
       
 
       
@@ -236,9 +236,9 @@
 
 
   
-    <article id="post-String编解码" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-String-Codec" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2014/11/24/String编解码/" class="article-date">
+    <a href="/2014/11/24/String-Codec/" class="article-date">
   <time datetime="2014-11-24T02:36:00.000Z" itemprop="datePublished">11月 24 2014</time>
 </a>
     
@@ -254,7 +254,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2014/11/24/String编解码/">String编解码问题</a>
+      <a class="article-title" href="/2014/11/24/String-Codec/">String编解码问题</a>
     </h1>
   
 
@@ -281,7 +281,7 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yiguang.me/2014/11/24/String编解码/" data-id="upkhkzg435wz8ssf" class="article-share-link" data-share="baidu">分享到</a>
+        <a data-url="http://yiguang.me/2014/11/24/String-Codec/" data-id="ot1djpspeg63x2c4" class="article-share-link" data-share="baidu">分享到</a>
       
 
       
@@ -382,7 +382,7 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yiguang.me/2014/11/19/MQTT-Message-broker-Storage-Design/" data-id="qm19z75nl0w5yo2r" class="article-share-link" data-share="baidu">分享到</a>
+        <a data-url="http://yiguang.me/2014/11/19/MQTT-Message-broker-Storage-Design/" data-id="prfzdbd8sg0vspxp" class="article-share-link" data-share="baidu">分享到</a>
       
 
       
@@ -457,7 +457,7 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yiguang.me/2014/11/14/Deep-into-Finagle-Server/" data-id="cq0y8hqa4nuqolug" class="article-share-link" data-share="baidu">分享到</a>
+        <a data-url="http://yiguang.me/2014/11/14/Deep-into-Finagle-Server/" data-id="yrtobqw4eznvtyn1" class="article-share-link" data-share="baidu">分享到</a>
       
 
       
@@ -500,7 +500,7 @@
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yiguang.me/2014/11/06/hello-world/" data-id="jht9okiwe5sj5eka" class="article-share-link" data-share="baidu">分享到</a>
+        <a data-url="http://yiguang.me/2014/11/06/hello-world/" data-id="p4jcndvudfdhj0uh" class="article-share-link" data-share="baidu">分享到</a>
       
 
       
@@ -561,7 +561,7 @@
       <ul>
         
           <li>
-            <a href="/2015/01/06/Scala陷阱１/">Scala陷阱１</a>
+            <a href="/2015/01/06/Scala-trap1/">Scala陷阱１</a>
           </li>
         
           <li>
@@ -569,11 +569,11 @@
           </li>
         
           <li>
-            <a href="/2014/11/28/scala-twitter-future/">Twitter的scala工具类中的Future</a>
+            <a href="/2014/11/28/Scala-twitter-future/">Twitter的scala工具类中的Future</a>
           </li>
         
           <li>
-            <a href="/2014/11/24/String编解码/">String编解码问题</a>
+            <a href="/2014/11/24/String-Codec/">String编解码问题</a>
           </li>
         
           <li>

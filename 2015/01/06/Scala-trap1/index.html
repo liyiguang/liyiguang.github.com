@@ -7,22 +7,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="Scala陷阱这个系列会把使用Scala过程中遇到的小问题给记录下来
 implicit
-其实这个问题和implicit 本身没有关系,和对象初始化顺序有关系,但implicit使得问题更迷惑.代码如下:
-12345678910111213141516object Call {">
+其实这个问题和implicit 本身没有关系,和对象初始化顺序有关系,但implicit使得问题更迷惑.代码如下：
+12345678910111213object Call {">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Scala陷阱１">
-<meta property="og:url" content="http://yiguang.me/2015/01/06/Scala陷阱１/">
+<meta property="og:url" content="http://yiguang.me/2015/01/06/Scala-trap1/">
 <meta property="og:site_name" content="Yiguang's blog">
 <meta property="og:description" content="Scala陷阱这个系列会把使用Scala过程中遇到的小问题给记录下来
 implicit
-其实这个问题和implicit 本身没有关系,和对象初始化顺序有关系,但implicit使得问题更迷惑.代码如下:
-12345678910111213141516object Call {">
+其实这个问题和implicit 本身没有关系,和对象初始化顺序有关系,但implicit使得问题更迷惑.代码如下：
+12345678910111213object Call {">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Scala陷阱１">
 <meta name="twitter:description" content="Scala陷阱这个系列会把使用Scala过程中遇到的小问题给记录下来
 implicit
-其实这个问题和implicit 本身没有关系,和对象初始化顺序有关系,但implicit使得问题更迷惑.代码如下:
-12345678910111213141516object Call {">
+其实这个问题和implicit 本身没有关系,和对象初始化顺序有关系,但implicit使得问题更迷惑.代码如下：
+12345678910111213object Call {">
 
   
     <link rel="alternative" href="/atom.xml" title="Yiguang&#39;s blog" type="application/atom+xml">
@@ -82,9 +82,9 @@ implicit
   </div>
 </header>
       <div class="outer">
-        <section id="main"><article id="post-Scala陷阱１" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-Scala-trap1" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2015/01/06/Scala陷阱１/" class="article-date">
+    <a href="/2015/01/06/Scala-trap1/" class="article-date">
   <time datetime="2015-01-06T06:05:52.000Z" itemprop="datePublished">1月 6 2015</time>
 </a>
     
@@ -110,16 +110,16 @@ implicit
       
         <p>Scala陷阱这个系列会把使用Scala过程中遇到的小问题给记录下来</p>
 <h3 id="implicit">implicit</h3>
-<p>其实这个问题和implicit 本身没有关系,和对象初始化顺序有关系,但implicit使得问题更迷惑.代码如下:</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">Call</span> </span>{                                                                             </div><div class="line">  <span class="keyword">def</span> hello(a:String)(implicit b:String) = {  </div><div class="line">    println(a+b)                              </div><div class="line">  }                                           </div><div class="line">}                                             </div><div class="line">                                              </div><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">Test</span> <span class="keyword">extends</span> <span class="title">App</span></span>{                      </div><div class="line">                                              </div><div class="line">  sayHello                                    </div><div class="line">                                              </div><div class="line">  implicit <span class="keyword">val</span> b = <span class="string">"bbb"</span>                      </div><div class="line">  <span class="keyword">def</span> sayHello = {                            </div><div class="line">    Call.hello(<span class="string">"a"</span>)                           </div><div class="line">  }                                           </div><div class="line">                                              </div><div class="line">}</div></pre></td></tr></table></figure>
+<p>其实这个问题和implicit 本身没有关系,和对象初始化顺序有关系,但implicit使得问题更迷惑.<br>代码如下：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">Call</span> </span>{                                                                             </div><div class="line">  <span class="keyword">def</span> hello(a:String)(implicit b:String) = {  </div><div class="line">    println(a+b)                              </div><div class="line">  }                                           </div><div class="line">}                                             </div><div class="line">                                              </div><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">Test</span> <span class="keyword">extends</span> <span class="title">App</span></span>{                                                                  </div><div class="line">  sayHello                                    </div><div class="line">                                           </div><div class="line">  implicit <span class="keyword">val</span> b = <span class="string">"bbb"</span>                      </div><div class="line">  <span class="keyword">def</span> sayHello = Call.hello(<span class="string">"a"</span>)                           </div><div class="line">                                                                                      </div><div class="line">}</div></pre></td></tr></table></figure>
 
-<p>运行Test会得到abbb的结果吗？答案是NO,得到的结果是anull,原因是调用sayHello val b 还没有被初始化,所以程序编译通过,但传给hello函数的impicit参数为null.</p>
+<p>运行Test会得到abbb的结果吗？答案是NO,得到的结果是anull,原因是调用sayHello时， val b 还没有被初始化,所以程序编译通过,但传给hello函数的impicit参数为null.</p>
 
       
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yiguang.me/2015/01/06/Scala陷阱１/" data-id="su6qu0bcvqv8xj4z" class="article-share-link" data-share="baidu">分享到</a>
+        <a data-url="http://yiguang.me/2015/01/06/Scala-trap1/" data-id="dtp664iswwj6kq4s" class="article-share-link" data-share="baidu">分享到</a>
       
 
       
@@ -191,7 +191,7 @@ implicit
       <ul>
         
           <li>
-            <a href="/2015/01/06/Scala陷阱１/">Scala陷阱１</a>
+            <a href="/2015/01/06/Scala-trap1/">Scala陷阱１</a>
           </li>
         
           <li>
@@ -199,11 +199,11 @@ implicit
           </li>
         
           <li>
-            <a href="/2014/11/28/scala-twitter-future/">Twitter的scala工具类中的Future</a>
+            <a href="/2014/11/28/Scala-twitter-future/">Twitter的scala工具类中的Future</a>
           </li>
         
           <li>
-            <a href="/2014/11/24/String编解码/">String编解码问题</a>
+            <a href="/2014/11/24/String-Codec/">String编解码问题</a>
           </li>
         
           <li>
