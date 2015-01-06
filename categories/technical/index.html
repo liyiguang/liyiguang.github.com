@@ -75,6 +75,58 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-Scala陷阱１" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/01/06/Scala陷阱１/" class="article-date">
+  <time datetime="2015-01-06T06:05:52.000Z" itemprop="datePublished">1月 6 2015</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/technical/">technical</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/01/06/Scala陷阱１/">Scala陷阱１</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Scala陷阱这个系列会把使用Scala过程中遇到的小问题给记录下来</p>
+<h3 id="implicit">implicit</h3>
+<p>其实这个问题和implicit 本身没有关系,和对象初始化顺序有关系,但implicit使得问题更迷惑.代码如下:</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">Call</span> </span>{                                                                             </div><div class="line">  <span class="keyword">def</span> hello(a:String)(implicit b:String) = {  </div><div class="line">    println(a+b)                              </div><div class="line">  }                                           </div><div class="line">}                                             </div><div class="line">                                              </div><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">Test</span> <span class="keyword">extends</span> <span class="title">App</span></span>{                      </div><div class="line">                                              </div><div class="line">  sayHello                                    </div><div class="line">                                              </div><div class="line">  implicit <span class="keyword">val</span> b = <span class="string">"bbb"</span>                      </div><div class="line">  <span class="keyword">def</span> sayHello = {                            </div><div class="line">    Call.hello(<span class="string">"a"</span>)                           </div><div class="line">  }                                           </div><div class="line">                                              </div><div class="line">}</div></pre></td></tr></table></figure>
+
+<p>运行Test会得到abbb的结果吗？答案是NO,得到的结果是anull,原因是调用sayHello val b 还没有被初始化,所以程序编译通过,但传给hello函数的impicit参数为null.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <a data-url="http://yiguang.me/2015/01/06/Scala陷阱１/" data-id="su6qu0bcvqv8xj4z" class="article-share-link" data-share="baidu">分享到</a>
+      
+
+      
+
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/scala/">scala</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-Scala-Collection" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2014/12/22/Scala-Collection/" class="article-date">
@@ -429,7 +481,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">分类</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/technical/">technical</a><span class="category-list-count">5</span></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/technical/">technical</a><span class="category-list-count">6</span></li></ul>
     </div>
   </div>
 
@@ -438,7 +490,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">标签</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/MQTT/">MQTT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/finagle/">finagle</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/netty/">netty</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/redis/">redis</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/scala/">scala</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/MQTT/">MQTT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/finagle/">finagle</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/">java</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/netty/">netty</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/redis/">redis</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/scala/">scala</a><span class="tag-list-count">4</span></li></ul>
     </div>
   </div>
 
@@ -456,7 +508,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">归档</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
@@ -466,6 +518,10 @@
     <h3 class="widget-title">近期文章</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2015/01/06/Scala陷阱１/">Scala陷阱１</a>
+          </li>
         
           <li>
             <a href="/2014/12/22/Scala-Collection/">Scala Collection</a>
@@ -481,10 +537,6 @@
         
           <li>
             <a href="/2014/11/19/MQTT-Message-broker-Storage-Design/">MQTT Message broker 存储设计</a>
-          </li>
-        
-          <li>
-            <a href="/2014/11/14/Deep-into-Finagle-Server/">Finagle Server 源代码分析</a>
           </li>
         
       </ul>
@@ -510,7 +562,7 @@
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2014 Yiguang<br>
+      &copy; 2015 Yiguang<br>
       Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
       .
       Theme by <a href="https://github.com/xiangming/landscape-plus" target="_blank">Landscape-plus</a>

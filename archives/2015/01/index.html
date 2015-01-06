@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Hello World | Yiguang&#39;s blog</title>
+  <title>Archives: 2015/1 | Yiguang&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Welcome to Yiguang’s blog">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Hello World">
-<meta property="og:url" content="http://yiguang.me/2014/11/06/hello-world/">
+  <meta name="description">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Yiguang's blog">
+<meta property="og:url" content="http://yiguang.me/archives/2015/01/">
 <meta property="og:site_name" content="Yiguang's blog">
-<meta property="og:description" content="Welcome to Yiguang’s blog">
+<meta property="og:description">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hello World">
-<meta name="twitter:description" content="Welcome to Yiguang’s blog">
+<meta name="twitter:title" content="Yiguang's blog">
+<meta name="twitter:description">
 
   
     <link rel="alternative" href="/atom.xml" title="Yiguang&#39;s blog" type="application/atom+xml">
@@ -73,12 +73,18 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main"><article id="post-hello-world" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main">
+  
+    <article id="post-Scala陷阱１" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2014/11/06/hello-world/" class="article-date">
-  <time datetime="2014-11-06T06:06:22.000Z" itemprop="datePublished">11月 6 2014</time>
+    <a href="/2015/01/06/Scala陷阱１/" class="article-date">
+  <time datetime="2015-01-06T06:05:52.000Z" itemprop="datePublished">1月 6 2015</time>
 </a>
     
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/technical/">technical</a>
+  </div>
+
   </div>
   <div class="article-inner">
     
@@ -86,8 +92,8 @@
       <header class="article-header">
         
   
-    <h1 class="article-title" itemprop="name">
-      Hello World
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/01/06/Scala陷阱１/">Scala陷阱１</a>
     </h1>
   
 
@@ -95,39 +101,33 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Welcome to <a href="http://yiguang.me" target="_blank" rel="external">Yiguang’s blog</a></p>
+        <p>Scala陷阱这个系列会把使用Scala过程中遇到的小问题给记录下来</p>
+<h3 id="implicit">implicit</h3>
+<p>其实这个问题和implicit 本身没有关系,和对象初始化顺序有关系,但implicit使得问题更迷惑.代码如下:</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">Call</span> </span>{                                                                             </div><div class="line">  <span class="keyword">def</span> hello(a:String)(implicit b:String) = {  </div><div class="line">    println(a+b)                              </div><div class="line">  }                                           </div><div class="line">}                                             </div><div class="line">                                              </div><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">Test</span> <span class="keyword">extends</span> <span class="title">App</span></span>{                      </div><div class="line">                                              </div><div class="line">  sayHello                                    </div><div class="line">                                              </div><div class="line">  implicit <span class="keyword">val</span> b = <span class="string">"bbb"</span>                      </div><div class="line">  <span class="keyword">def</span> sayHello = {                            </div><div class="line">    Call.hello(<span class="string">"a"</span>)                           </div><div class="line">  }                                           </div><div class="line">                                              </div><div class="line">}</div></pre></td></tr></table></figure>
+
+<p>运行Test会得到abbb的结果吗？答案是NO,得到的结果是anull,原因是调用sayHello val b 还没有被初始化,所以程序编译通过,但传给hello函数的impicit参数为null.</p>
 
       
     </div>
     <footer class="article-footer">
       
-        <a data-url="http://yiguang.me/2014/11/06/hello-world/" data-id="jht9okiwe5sj5eka" class="article-share-link" data-share="baidu">分享到</a>
+        <a data-url="http://yiguang.me/2015/01/06/Scala陷阱１/" data-id="su6qu0bcvqv8xj4z" class="article-share-link" data-share="baidu">分享到</a>
       
 
       
 
       
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/scala/">scala</a></li></ul>
+
     </footer>
   </div>
   
-    
-<nav id="article-nav">
-  
-    <a href="/2014/11/14/Deep-into-Finagle-Server/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          Finagle Server 源代码分析
-        
-      </div>
-    </a>
-  
-  
-</nav>
-
-  
 </article>
 
+
+  
+  
 </section>
         
           <aside id="sidebar">
